@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -14,36 +16,30 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-enum Animals { Cat, Dog, Bird, Lizard, Fish }
-
 class _MyAppState extends State<MyApp> {
-  Animals _selected = Animals.Cat;
-  String _value = "Make a Selection";
-  List<PopupMenuEntry<Animals>> _items = new List<PopupMenuEntry<Animals>>();
+  static Duration duration = new Duration(milliseconds: 100);
+  Timer timer;
+  double _value = 0.0;
+  bool _active = true;
 
   @override
   void initState() {
-    for (Animals animal in Animals.values) {
-      _items.add(new PopupMenuItem(
-        child: Text(
-          _getDisplay(animal),
-        ),
-        value: animal,
-      ));
-    }
+    timer = new Timer.periodic(duration, _timeout);
   }
 
-  void _onSelected(Animals animal) {
+  void _timeout(Timer timer) {
+    if (!_active) return;
     setState(() {
-      _selected = animal;
-      _value = "You Selected ${_getDisplay(animal)}";
+      _value = _value + 0.01;
+      if (_value == 1.0) _active = false;
     });
   }
 
-  String _getDisplay(Animals animal) {
-    int index = animal.toString().indexOf('.');
-    index++;
-    return animal.toString().substring(index);
+  void _onPressed() {
+    setState(() {
+      _value = 0.0;
+      _active = true;
+    });
   }
 
   @override
@@ -54,20 +50,22 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Container(
           padding: EdgeInsets.all(32.0),
-          child: Row(
-            children: [
-              new Container(
-                padding: EdgeInsets.all(5.0),
-                child: Text(_value),
-              ),
-              new PopupMenuButton<Animals>(
-                  child: new Icon(Icons.input),
-                  initialValue: Animals.Cat,
-                  onSelected: _onSelected,
-                  itemBuilder: (BuildContext context) {
-                    return _items;
-                  })
-            ],
+          child: Center(
+            child: Column(
+              children: [
+                new Container(
+                  padding: new EdgeInsets.all(32.0),
+                  child: new LinearProgressIndicator(
+                    value: _value,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+                new RaisedButton(
+                  onPressed: _onPressed,
+                  child: new Text('Start'),
+                )
+              ],
+            ),
           ),
         ));
   }
